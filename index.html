@@ -1,1336 +1,252 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="color-scheme" content="dark light" />
-  <title>Employee of Three Month — Polling</title>
-  <meta name="description" content="Polling interaktif untuk memilih Employee of Three Month." />
-
-  <!-- Fonts -->
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Employee of Three Month — Vote</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
 
-  <!-- GSAP + Confetti (CDN) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <!-- Netlify Identity (login email) -->
+  <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
   <style>
     :root{
-      --bg0:#06070b;
-      --bg1:#0b1020;
-      --card: rgba(255,255,255,.08);
-      --card2: rgba(255,255,255,.12);
-      --stroke: rgba(255,255,255,.14);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.65);
-      --shadow: 0 20px 60px rgba(0,0,0,.45);
-      --radius: 18px;
-      --radius2: 26px;
-
-      --a:#38bdf8; /* sky */
-      --b:#34d399; /* emerald */
-      --c:#a78bfa; /* violet */
-      --d:#fb7185; /* rose */
-      --warn:#fbbf24;
-      --ok:#22c55e;
-
-      --ring: 0 0 0 6px rgba(56,189,248,.18);
+      --bg:#0b1020; --card:rgba(255,255,255,.08); --stroke:rgba(255,255,255,.14);
+      --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.68);
+      --a:#38bdf8; --b:#34d399;
+      --r:18px;
     }
-
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+    *{box-sizing:border-box}
     body{
-      margin:0;
-      font-family:"Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      background: radial-gradient(1200px 900px at 10% 10%, rgba(56,189,248,.18), transparent 60%),
-                  radial-gradient(900px 700px at 90% 25%, rgba(167,139,250,.16), transparent 55%),
-                  radial-gradient(900px 700px at 60% 90%, rgba(52,211,153,.14), transparent 55%),
-                  linear-gradient(180deg, var(--bg0), var(--bg1));
-      overflow-x:hidden;
+      margin:0; font-family:"Plus Jakarta Sans",system-ui; color:var(--text);
+      background: radial-gradient(900px 700px at 15% 10%, rgba(56,189,248,.20), transparent 60%),
+                  radial-gradient(900px 700px at 85% 20%, rgba(52,211,153,.16), transparent 60%),
+                  linear-gradient(180deg,#05060a,var(--bg));
+      min-height:100vh;
     }
-
-    /* Background canvas */
-    #fx{
-      position:fixed; inset:0;
-      z-index:-2;
-      width:100%; height:100%;
-      display:block;
-      filter: saturate(1.1) contrast(1.05);
-    }
-
-    /* Soft grain */
-    .grain{
-      position:fixed; inset:-40px;
-      z-index:-1;
-      pointer-events:none;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
-      opacity:.07;
-      mix-blend-mode: overlay;
-      transform: rotate(2deg);
-    }
-
-    header{
-      position:sticky; top:0;
-      backdrop-filter: blur(14px);
-      background: rgba(6,7,11,.35);
-      border-bottom:1px solid rgba(255,255,255,.08);
-      z-index:50;
-    }
-
-    .wrap{ max-width:1180px; margin:0 auto; padding:20px 20px; }
-    .topbar{
-      display:flex; gap:14px; align-items:center; justify-content:space-between;
-    }
-
-    .brand{
-      display:flex; gap:12px; align-items:center;
-      min-width:240px;
-    }
-    .logo{
-      width:40px; height:40px;
-      border-radius:14px;
-      background:
-        radial-gradient(12px 12px at 30% 30%, rgba(255,255,255,.45), transparent 60%),
-        linear-gradient(135deg, rgba(56,189,248,.85), rgba(52,211,153,.85));
-      box-shadow: 0 12px 26px rgba(56,189,248,.15);
-      position:relative;
-      overflow:hidden;
-    }
-    .logo::after{
-      content:"";
-      position:absolute; inset:-40%;
-      background: conic-gradient(from 180deg, rgba(255,255,255,.0), rgba(255,255,255,.25), rgba(255,255,255,.0));
-      animation: spin 4.8s linear infinite;
-    }
-    @keyframes spin{ to{ transform:rotate(360deg);} }
-
-    .brand h1{
-      font-size:14px; margin:0;
-      letter-spacing:.2px;
-      line-height:1.15;
-    }
-    .brand p{
-      margin:3px 0 0; font-size:12px; color:var(--muted);
-    }
-
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      border-radius:999px;
-      box-shadow: 0 12px 32px rgba(0,0,0,.25);
-    }
-
-    .controls{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .input, .select{
-      display:flex; align-items:center; gap:10px;
-      padding:10px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 24px rgba(0,0,0,.22);
-      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-    }
-    .input:focus-within, .select:focus-within{
-      border-color: rgba(56,189,248,.55);
-      box-shadow: var(--shadow), var(--ring);
-      transform: translateY(-1px);
-    }
-    .input input{
-      border:none; outline:none;
-      background:transparent;
-      color:var(--text);
-      width:min(320px, 62vw);
-      font-size:13px;
-    }
-    .select select{
-      border:none; outline:none;
-      background:transparent;
-      color:var(--text);
-      font-size:13px;
-      appearance:none;
-      padding-right:4px;
-      cursor:pointer;
-    }
-
+    header{position:sticky;top:0;background:rgba(5,6,10,.45);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08)}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .brand b{font-size:14px}
+    .brand div{font-size:12px;color:var(--muted);margin-top:4px}
     .btn{
-      border:none;
-      cursor:pointer;
-      user-select:none;
-      padding:10px 14px;
-      border-radius:999px;
-      font-weight:700;
-      font-size:13px;
-      color: rgba(5,8,15,.95);
-      background: linear-gradient(135deg, rgba(56,189,248,1), rgba(52,211,153,1));
-      box-shadow: 0 16px 40px rgba(56,189,248,.18);
-      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-      display:inline-flex; align-items:center; gap:10px;
-      position:relative;
-      overflow:hidden;
+      border:none; cursor:pointer; padding:10px 14px; border-radius:999px;
+      background:linear-gradient(135deg,var(--a),var(--b)); color:#071018; font-weight:800;
     }
-    .btn:hover{ transform: translateY(-1px); filter:saturate(1.1); }
-    .btn:active{ transform: translateY(0px) scale(.99); }
     .btn.secondary{
-      color:var(--text);
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow: 0 12px 32px rgba(0,0,0,.22);
-      font-weight:700;
-    }
-    .btn.secondary:hover{ border-color: rgba(255,255,255,.22); }
-
-    main{ padding:26px 0 40px; }
-
-    .hero{
-      display:grid;
-      grid-template-columns: 1.3fr .7fr;
-      gap:16px;
-      align-items:stretch;
-    }
-    @media (max-width: 980px){
-      .hero{ grid-template-columns: 1fr; }
-      .brand{ min-width:auto; }
-    }
-
-    .card{
-      border-radius: var(--radius2);
-      border:1px solid rgba(255,255,255,.12);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-      backdrop-filter: blur(14px);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-    .card::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(500px 180px at 10% 20%, rgba(56,189,248,.18), transparent 60%),
-                  radial-gradient(460px 180px at 85% 10%, rgba(167,139,250,.18), transparent 55%),
-                  radial-gradient(460px 240px at 70% 120%, rgba(52,211,153,.16), transparent 55%);
-      pointer-events:none;
-      filter: blur(0px);
-    }
-
-    .hero-left{ padding:22px 22px 18px; }
-    .kicker{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-      margin-bottom:12px;
-    }
-    .tag{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.78);
-      font-size:12px;
-    }
-    .dot{
-      width:8px; height:8px; border-radius:999px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.7), rgba(255,255,255,.08)),
-                  linear-gradient(135deg, var(--a), var(--b));
-      box-shadow: 0 0 0 4px rgba(56,189,248,.12);
-    }
-
-    .title{
-      font-size:34px;
-      line-height:1.08;
-      margin:10px 0 10px;
-      letter-spacing:-.6px;
-    }
-    @media (max-width: 520px){ .title{ font-size:28px; } }
-
-    .subtitle{
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.6;
-      max-width:68ch;
-    }
-
-    .hero-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:14px;
-    }
-
-    .statbox{
-      padding:18px 18px 14px;
-      display:flex; flex-direction:column; gap:10px;
-    }
-    .stats{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-    .stat{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      padding:12px 12px;
-      position:relative;
-      overflow:hidden;
-    }
-    .stat h3{
-      margin:0;
-      font-size:12px;
-      color: rgba(255,255,255,.72);
-      font-weight:700;
-      letter-spacing:.2px;
-    }
-    .stat .big{
-      margin-top:6px;
-      font-size:18px;
+      background:rgba(255,255,255,.06); color:var(--text); border:1px solid var(--stroke);
       font-weight:800;
-      letter-spacing:-.2px;
     }
-    .hint{
-      font-size:12px;
-      color: rgba(255,255,255,.65);
-      line-height:1.5;
-      margin-top:4px;
-    }
-
-    .grid{
-      margin-top:16px;
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:14px;
-    }
-    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(2, 1fr);} }
-    @media (max-width: 640px){ .grid{ grid-template-columns: 1fr;} }
-
-    .emp{
-      border-radius: 22px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      padding:14px;
-      position:relative;
-      overflow:hidden;
-      transform: translateZ(0);
-      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    main{padding:18px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    @media(max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){.grid{grid-template-columns:1fr}}
+    .card{
+      border:1px solid var(--stroke); background:var(--card); border-radius:22px; padding:14px;
+      transition:transform .15s ease, border-color .15s ease;
       cursor:pointer;
     }
-    .emp:hover{
-      transform: translateY(-3px);
-      border-color: rgba(255,255,255,.20);
-      background: rgba(255,255,255,.075);
+    .card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.22)}
+    .top{display:flex;gap:12px;align-items:center}
+    .ava{width:52px;height:52px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.16)}
+    .ava img{width:100%;height:100%;object-fit:cover;display:block}
+    .name{font-weight:900}
+    .meta{font-size:12px;color:var(--muted);margin-top:4px}
+    .pill{display:inline-block;margin-top:10px;font-size:12px;color:rgba(255,255,255,.78);padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05)}
+    .panel{
+      margin-top:16px; border-radius:22px; border:1px solid var(--stroke); background:rgba(255,255,255,.06);
+      padding:14px; display:grid; grid-template-columns:.9fr 1.1fr; gap:14px;
     }
-    .emp.selected{
-      border-color: rgba(56,189,248,.65);
-      box-shadow: var(--ring);
-    }
-
-    .emp-top{
-      display:flex; gap:12px; align-items:center;
-    }
-
-    .avatar{
-      width:50px; height:50px;
-      border-radius: 18px;
-      background:
-        radial-gradient(14px 14px at 30% 28%, rgba(255,255,255,.55), transparent 60%),
-        linear-gradient(135deg, rgba(56,189,248,.50), rgba(167,139,250,.40));
-      border:1px solid rgba(255,255,255,.18);
-      box-shadow: 0 14px 32px rgba(0,0,0,.25);
-      overflow:hidden;
-      position:relative;
-      flex:0 0 auto;
-    }
-    .avatar img{
-      width:100%; height:100%;
-      object-fit:cover;
-      display:block;
-      filter: saturate(1.05) contrast(1.05);
-    }
-
-    .emp h4{
-      margin:0;
-      font-size:14px;
-      font-weight:800;
-      letter-spacing:-.2px;
-    }
-    .emp .meta{
-      margin-top:4px;
-      font-size:12px;
-      color: rgba(255,255,255,.68);
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    .badge{
-      font-size:11px;
-      padding:6px 8px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: rgba(255,255,255,.74);
-    }
-
-    .bar{
-      margin-top:12px;
-      height:10px;
-      border-radius:999px;
-      background: rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.10);
-      overflow:hidden;
-      position:relative;
-    }
-    .bar > i{
-      display:block;
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, rgba(56,189,248,1), rgba(52,211,153,1), rgba(167,139,250,1));
-      border-radius:999px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset;
-      position:relative;
-    }
-    .bar > i::after{
-      content:"";
-      position:absolute; inset:-30% -20%;
-      background: radial-gradient(120px 40px at 10% 50%, rgba(255,255,255,.35), transparent 60%),
-                  radial-gradient(120px 40px at 50% 50%, rgba(255,255,255,.18), transparent 60%),
-                  radial-gradient(120px 40px at 90% 50%, rgba(255,255,255,.26), transparent 60%);
-      animation: shimmer 2.3s ease-in-out infinite;
-      opacity:.55;
-      transform: translateX(-25%);
-    }
-    @keyframes shimmer{
-      0%{ transform: translateX(-30%); }
-      50%{ transform: translateX(10%); }
-      100%{ transform: translateX(-30%); }
-    }
-
-    .emp-bottom{
-      display:flex; justify-content:space-between; align-items:center;
-      margin-top:10px;
-      gap:10px;
-    }
-    .score{
-      font-size:12px;
-      color: rgba(255,255,255,.78);
-      font-weight:800;
-    }
-    .mini{
-      font-size:12px;
-      color: rgba(255,255,255,.60);
-    }
-
-    /* Footer action bar */
-    .actionbar{
-      position:fixed; left:0; right:0; bottom:0;
-      padding:14px 14px 16px;
-      z-index:60;
-      pointer-events:none;
-    }
-    .actionbar .inner{
-      max-width:1180px;
-      margin:0 auto;
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px;
-      padding:12px 12px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(6,7,11,.35);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 20px 60px rgba(0,0,0,.45);
-      pointer-events:auto;
-    }
-    .actionbar .left{
-      display:flex; flex-direction:column; gap:2px;
-      min-width: 220px;
-    }
-    .actionbar .left .t{
-      font-size:12px; color: rgba(255,255,255,.72); font-weight:800;
-    }
-    .actionbar .left .v{
-      font-size:13px; color: rgba(255,255,255,.92); font-weight:800;
-    }
-    .actionbar .right{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .toast{
-      position:fixed;
-      right:16px; top:86px;
-      z-index:80;
-      max-width: 420px;
-      padding:12px 12px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(10,14,25,.55);
-      backdrop-filter: blur(14px);
-      box-shadow: var(--shadow);
-      display:none;
-    }
-    .toast.show{ display:block; }
-    .toast .row{ display:flex; gap:10px; align-items:flex-start; }
-    .toast .ico{
-      width:26px; height:26px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, rgba(56,189,248,.9), rgba(52,211,153,.9));
-      display:flex; align-items:center; justify-content:center;
-      color: rgba(5,8,15,.92);
-      font-weight:900;
-      flex:0 0 auto;
-    }
-    .toast b{ display:block; font-size:13px; }
-    .toast p{ margin:4px 0 0; font-size:12px; color: rgba(255,255,255,.72); line-height:1.5; }
-
-    /* Modal */
-    .modal{
-      position:fixed; inset:0;
-      display:none;
-      place-items:center;
-      z-index:90;
-    }
-    .modal.show{ display:grid; }
-    .backdrop{
-      position:absolute; inset:0;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(8px);
-    }
-    .dialog{
-      position:relative;
-      width:min(920px, 92vw);
-      border-radius: 22px;
-      border:1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .dialog .head{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px;
-      padding:14px 14px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-      background: rgba(6,7,11,.25);
-      backdrop-filter: blur(14px);
-    }
-    .dialog .head .h{
-      display:flex; gap:12px; align-items:center;
-    }
-    .dialog .head .h b{ font-size:14px; }
-    .dialog .head .h span{ font-size:12px; color: rgba(255,255,255,.65); }
-    .dialog .body{
-      display:grid;
-      grid-template-columns: .9fr 1.1fr;
-      gap:14px;
-      padding:14px;
-    }
-    @media (max-width: 900px){ .dialog .body{ grid-template-columns: 1fr; } }
-    .bigpic{
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-      overflow:hidden;
-      min-height: 260px;
-      position:relative;
-    }
-    .bigpic img{
-      width:100%; height:100%;
-      object-fit:cover;
-      display:block;
-      transform: scale(1.02);
-      filter: saturate(1.05) contrast(1.06);
-    }
-    .info{
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-      padding:14px;
-    }
-    .info h3{
-      margin:0 0 8px;
-      font-size:18px;
-      letter-spacing:-.2px;
-    }
-    .info p{
-      margin:0 0 10px;
-      color: rgba(255,255,255,.72);
-      line-height:1.6;
-      font-size:13px;
-    }
-    .chips{ display:flex; gap:8px; flex-wrap:wrap; }
-    .chip{
-      padding:7px 9px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      font-size:12px;
-      color: rgba(255,255,255,.78);
-    }
-
-    /* Confetti canvas */
-    #confetti{
-      position:fixed; inset:0;
-      pointer-events:none;
-      z-index:100;
-    }
+    @media(max-width:900px){.panel{grid-template-columns:1fr}}
+    .big{border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.14); min-height:240px}
+    .big img{width:100%;height:100%;object-fit:cover;display:block}
+    .detail h2{margin:0 0 6px;font-size:18px}
+    .detail p{margin:0 0 12px;color:var(--muted);line-height:1.6;font-size:13px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .chip{font-size:12px;padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.82)}
+    .status{font-size:12px;color:var(--muted)}
+    .toast{margin-top:10px;font-size:12px;color:rgba(255,255,255,.78)}
+    a{color:rgba(56,189,248,.95);text-decoration:none}
   </style>
 </head>
-
 <body>
-  <canvas id="fx"></canvas>
-  <canvas id="confetti"></canvas>
-  <div class="grain" aria-hidden="true"></div>
-
-  <header>
-    <div class="wrap">
-      <div class="topbar">
-        <div class="brand">
-          <div class="logo" aria-hidden="true"></div>
-          <div>
-            <h1>Employee of Three Month — Polling</h1>
-            <p id="periodLabel">Periode: <b>Jan–Mar 2026</b> · 1 device 1 vote (demo)</p>
-          </div>
-        </div>
-
-        <div class="controls">
-          <div class="pill" id="modePill" title="Mode penyimpanan">
-            <span class="dot" aria-hidden="true"></span>
-            <span style="font-size:12px;color:rgba(255,255,255,.78);font-weight:800;">Mode:</span>
-            <span id="modeText" style="font-size:12px;color:rgba(255,255,255,.92);font-weight:900;">Demo (Local)</span>
-          </div>
-
-          <div class="input" title="Cari nama / unit / tag">
-            <span aria-hidden="true">🔎</span>
-            <input id="q" placeholder="Cari kandidat…" autocomplete="off" />
-          </div>
-
-          <div class="select" title="Urutkan">
-            <span aria-hidden="true">↕️</span>
-            <select id="sort">
-              <option value="rank">Peringkat (tertinggi)</option>
-              <option value="name">Nama (A–Z)</option>
-              <option value="unit">Unit (A–Z)</option>
-            </select>
-          </div>
-
-          <button class="btn secondary" id="resetLocal" title="Reset vote untuk device ini (localStorage)">
-            ♻️ Reset (device ini)
-          </button>
-
-          <button class="btn" id="howReal" title="Cara membuat vote terkumpul untuk semua orang">
-            🚀 Mode Real (Opsional)
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <section class="hero">
-      <div class="card hero-left">
-        <div class="kicker">
-          <span class="tag">✨ UI mewah + animasi</span>
-          <span class="tag">🧠 Search + Sort</span>
-          <span class="tag">🎉 Confetti</span>
-          <span class="tag">🔒 Vote-lock (demo)</span>
-        </div>
-
-        <h2 class="title">Pilih <span style="background:linear-gradient(90deg,var(--a),var(--b),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent;">Employee of Three Month</span> terbaik.</h2>
-        <p class="subtitle">
-          Klik salah satu kandidat untuk melihat profil singkat, lalu submit vote.
-          Halaman ini dibuat untuk GitHub Pages (statis) — hasil vote demo tersimpan di device masing-masing.
-        </p>
-
-        <div class="hero-actions">
-          <button class="btn" id="btnAutoPick">🎯 Surprise me</button>
-          <button class="btn secondary" id="btnOpenResults">📊 Lihat hasil (device ini)</button>
-          <span class="tag" id="lockState">Status vote: <b>Belum memilih</b></span>
-        </div>
-      </div>
-
-      <div class="card statbox">
-        <div class="stats">
-          <div class="stat">
-            <h3>Total Kandidat</h3>
-            <div class="big" id="statCandidates">0</div>
-            <div class="hint">Daftar bisa kamu edit di bagian <b>DATA</b> (JS).</div>
-          </div>
-          <div class="stat">
-            <h3>Status Vote</h3>
-            <div class="big" id="statStatus">Unlocked</div>
-            <div class="hint">Demo: lock memakai <b>localStorage</b>.</div>
-          </div>
-        </div>
-
-        <div class="stat" style="margin-top:2px;">
-          <h3>Periode</h3>
-          <div class="big" id="statPeriod">Jan–Mar 2026</div>
-          <div class="hint">Silakan ganti label periode sesuai kebutuhan.</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid" id="grid" aria-label="Daftar kandidat"></section>
-  </main>
-
-  <!-- Bottom action bar -->
-  <div class="actionbar" role="region" aria-label="Aksi Voting">
-    <div class="inner">
-      <div class="left">
-        <div class="t">Kandidat terpilih</div>
-        <div class="v" id="pickedLabel">Belum ada</div>
-      </div>
-      <div class="right">
-        <button class="btn secondary" id="btnDetails" disabled>👤 Detail</button>
-        <button class="btn" id="btnVote" disabled>🗳️ Submit Vote</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite">
+<header>
+  <div class="wrap">
     <div class="row">
-      <div class="ico" id="toastIco">✓</div>
-      <div>
-        <b id="toastTitle">Berhasil</b>
-        <p id="toastMsg">Aksi berhasil dilakukan.</p>
+      <div class="brand">
+        <b>Employee of Three Month — Vote</b>
+        <div id="period">Periode: Jan–Mar 2026</div>
+      </div>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn secondary" id="btnAdmin" title="Halaman admin (harus role admin)">Admin</button>
+        <button class="btn secondary" id="btnLogin">Login</button>
+        <button class="btn" id="btnLogout" style="display:none">Logout</button>
       </div>
     </div>
+    <div class="status" id="authState">Status: belum login</div>
   </div>
+</header>
 
-  <!-- Modal -->
-  <div class="modal" id="modal" aria-hidden="true">
-    <div class="backdrop" id="modalClose"></div>
-    <div class="dialog" role="dialog" aria-modal="true" aria-label="Detail kandidat">
-      <div class="head">
-        <div class="h">
-          <b id="mName">Nama</b>
-          <span id="mUnit">Unit</span>
-        </div>
-        <button class="btn secondary" id="mX">✕ Tutup</button>
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+
+  <section class="panel" id="panel" style="display:none">
+    <div class="big"><img id="pImg" alt="Foto kandidat"></div>
+    <div class="detail">
+      <h2 id="pName">—</h2>
+      <div class="meta" id="pMeta">—</div>
+      <p id="pBio">—</p>
+      <div class="chips" id="pChips"></div>
+
+      <div class="row" style="justify-content:flex-start">
+        <button class="btn" id="btnVote">Vote kandidat ini</button>
+        <button class="btn secondary" id="btnClose">Tutup</button>
       </div>
-      <div class="body">
-        <div class="bigpic"><img id="mImg" alt="Foto kandidat" /></div>
-        <div class="info">
-          <h3 id="mTitle">Highlight</h3>
-          <p id="mBio">—</p>
-          <div class="chips" id="mChips"></div>
-          <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn secondary" id="mPick">✅ Pilih kandidat ini</button>
-            <button class="btn" id="mVote">🗳️ Submit Vote</button>
-          </div>
-          <p class="hint" style="margin-top:10px;">
-            Tips: gunakan <b>Mode Real</b> kalau ingin vote terkumpul untuk semua orang (butuh login GitHub).
-          </p>
-        </div>
+      <div class="toast" id="toast"></div>
+      <div class="status" style="margin-top:10px">
+        Catatan: 1 akun = 1 vote (divalidasi server). Untuk rekap: <a href="/admin.html">admin page</a>.
       </div>
     </div>
-  </div>
+  </section>
+</main>
 
 <script>
-/* =========================
-   DATA — edit kandidat di sini
-   ========================= */
-const PERIOD_LABEL = "Jan–Mar 2026"; // ubah sesuai periode
-// Foto: pakai avatar placeholder (bisa ganti ke foto internal, letakkan di /assets)
-const EMPLOYEES = [
-  {
-    id: "e01",
-    name: "Alya Putri",
-    unit: "Direktorat A",
-    role: "Analis",
-    tags: ["Impact tinggi", "Kolaboratif", "Cepat respons"],
-    bio: "Menginisiasi perbaikan SOP lintas tim dan mempercepat SLA internal melalui otomasi pelaporan.",
-    // Placeholder image:
-    photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=60"
-  },
-  {
-    id: "e02",
-    name: "Raka Pratama",
-    unit: "Direktorat B",
-    role: "Pengembang Sistem",
-    tags: ["Inovatif", "Quality-first", "Ownership"],
-    bio: "Meningkatkan stabilitas aplikasi dengan observability + perbaikan performa, downtime turun signifikan.",
-    photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=60"
-  },
-  {
-    id: "e03",
-    name: "Nadia Salsabila",
-    unit: "Direktorat C",
-    role: "Koordinator",
-    tags: ["Leadership", "Rapi", "Empatik"],
-    bio: "Menjaga ritme eksekusi program, komunikasi stakeholder mulus, dan deliverable konsisten on-time.",
-    photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=60"
-  },
-  {
-    id: "e04",
-    name: "Fajar Wicaksana",
-    unit: "Direktorat A",
-    role: "Auditor",
-    tags: ["Teliti", "Risk-aware", "Akuntabel"],
-    bio: "Menguatkan kontrol internal dan membuat checklist audit yang memudahkan pembuktian dan tindak lanjut.",
-    photo: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=800&q=60"
-  },
-  {
-    id: "e05",
-    name: "Siti Rahma",
-    unit: "Direktorat B",
-    role: "Pelayanan Publik",
-    tags: ["Service excellence", "Solutif", "Calm under pressure"],
-    bio: "Meningkatkan kepuasan pemohon lewat perbaikan template respon dan alur konsultasi yang lebih jelas.",
-    photo: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&q=60"
-  },
-  {
-    id: "e06",
-    name: "Dimas Alamsyah",
-    unit: "Direktorat C",
-    role: "Data Specialist",
-    tags: ["Data-driven", "Insightful", "Proaktif"],
-    bio: "Membangun dashboard yang membuat monitoring KPI jadi real-time dan mudah dipahami pimpinan.",
-    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=60"
-  }
-];
+  // ====== DATA (edit sesuai kandidat) ======
+  const PERIOD = "Jan–Mar 2026";
+  const CANDIDATES = [
+    { id:"e01", name:"Alya Putri", unit:"Direktorat A", role:"Analis", bio:"Menginisiasi perbaikan SOP lintas tim dan mempercepat SLA internal melalui otomasi pelaporan.", tags:["Impact tinggi","Kolaboratif"], photo:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=60" },
+    { id:"e02", name:"Raka Pratama", unit:"Direktorat B", role:"Pengembang Sistem", bio:"Meningkatkan stabilitas aplikasi dengan observability + perbaikan performa.", tags:["Ownership","Quality-first"], photo:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=60" },
+    { id:"e03", name:"Nadia Salsabila", unit:"Direktorat C", role:"Koordinator", bio:"Menjaga ritme eksekusi program dan koordinasi stakeholder secara rapi.", tags:["Leadership","Empatik"], photo:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=60" },
+    { id:"e04", name:"Fajar Wicaksana", unit:"Direktorat A", role:"Auditor", bio:"Menguatkan kontrol internal dan membuat checklist audit yang memudahkan tindak lanjut.", tags:["Teliti","Akuntabel"], photo:"https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=900&q=60" },
+    { id:"e05", name:"Siti Rahma", unit:"Direktorat B", role:"Pelayanan Publik", bio:"Meningkatkan kepuasan pemohon lewat perbaikan template respon dan alur konsultasi.", tags:["Service excellence","Solutif"], photo:"https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=60" },
+    { id:"e06", name:"Dimas Alamsyah", unit:"Direktorat C", role:"Data Specialist", bio:"Membangun dashboard monitoring KPI real-time yang mudah dipahami.", tags:["Data-driven","Proaktif"], photo:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=60" },
+  ];
 
-/* =========================
-   STORAGE (Demo)
-   - Votes tersimpan di localStorage per device
-   ========================= */
-const LS_KEY = "eotm_three_month_vote_v1";
-const LS_COUNTS = "eotm_three_month_counts_v1";
+  // ====== UI ======
+  const el = (id)=>document.getElementById(id);
+  el("period").textContent = `Periode: ${PERIOD}`;
 
-function getLock(){
-  return JSON.parse(localStorage.getItem(LS_KEY) || "null");
-}
-function setLock(payload){
-  localStorage.setItem(LS_KEY, JSON.stringify(payload));
-}
-function clearLock(){
-  localStorage.removeItem(LS_KEY);
-}
-function getCounts(){
-  return JSON.parse(localStorage.getItem(LS_COUNTS) || "{}");
-}
-function setCounts(obj){
-  localStorage.setItem(LS_COUNTS, JSON.stringify(obj));
-}
+  let selected = null;
 
-function ensureCounts(){
-  const c = getCounts();
-  let changed = false;
-  EMPLOYEES.forEach(e => {
-    if (typeof c[e.id] !== "number") { c[e.id] = 0; changed = true; }
-  });
-  if (changed) setCounts(c);
-  return c;
-}
-
-/* =========================
-   UI State
-   ========================= */
-let selectedId = null;
-
-const el = (id) => document.getElementById(id);
-const grid = el("grid");
-
-function toast(title, msg, ok=true){
-  const t = el("toast");
-  el("toastTitle").textContent = title;
-  el("toastMsg").textContent = msg;
-  el("toastIco").textContent = ok ? "✓" : "!";
-  el("toastIco").style.background = ok
-    ? "linear-gradient(135deg, rgba(56,189,248,.9), rgba(52,211,153,.9))"
-    : "linear-gradient(135deg, rgba(251,191,36,.95), rgba(251,113,133,.9))";
-
-  t.classList.add("show");
-  gsap.fromTo(t, {y:-8, opacity:0}, {y:0, opacity:1, duration:.25, ease:"power2.out"});
-  clearTimeout(toast._tm);
-  toast._tm = setTimeout(() => {
-    gsap.to(t, {opacity:0, y:-8, duration:.22, ease:"power2.in", onComplete:()=>t.classList.remove("show")});
-  }, 2800);
-}
-
-function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
-
-function computeRank(counts){
-  const total = Object.values(counts).reduce((a,b)=>a+b,0) || 0;
-  const arr = EMPLOYEES.map(e => ({
-    ...e,
-    votes: counts[e.id] || 0,
-    pct: total ? (counts[e.id]||0)/total*100 : 0
-  }));
-  arr.sort((a,b) => b.votes - a.votes || a.name.localeCompare(b.name));
-  return { total, arr };
-}
-
-function render(){
-  const q = el("q").value.trim().toLowerCase();
-  const sort = el("sort").value;
-
-  const counts = ensureCounts();
-  const { total, arr: ranked } = computeRank(counts);
-
-  // filter
-  let list = ranked.filter(e => {
-    const hay = `${e.name} ${e.unit} ${e.role} ${e.tags.join(" ")}`.toLowerCase();
-    return !q || hay.includes(q);
-  });
-
-  // sort
-  if (sort === "name") list.sort((a,b)=>a.name.localeCompare(b.name));
-  if (sort === "unit") list.sort((a,b)=>a.unit.localeCompare(b.unit) || a.name.localeCompare(b.name));
-  if (sort === "rank") list.sort((a,b)=> b.votes - a.votes || a.name.localeCompare(b.name));
-
-  grid.innerHTML = "";
-  list.forEach((e, idx) => {
-    const card = document.createElement("article");
-    card.className = "emp" + (selectedId===e.id ? " selected" : "");
-    card.tabIndex = 0;
-    card.setAttribute("data-id", e.id);
-
-    const badges = `
-      <span class="badge">${escapeHtml(e.unit)}</span>
-      <span class="badge">${escapeHtml(e.role)}</span>
-      <span class="badge" title="Peringkat di device ini">#${(sort==="rank" ? idx+1 : (ranked.findIndex(x=>x.id===e.id)+1))}</span>
-    `;
-
-    card.innerHTML = `
-      <div class="emp-top">
-        <div class="avatar">
-          <img alt="Foto ${escapeHtml(e.name)}" loading="lazy" src="${e.photo}">
+  function renderGrid(){
+    const g = el("grid");
+    g.innerHTML = "";
+    CANDIDATES.forEach(c=>{
+      const d = document.createElement("div");
+      d.className = "card";
+      d.innerHTML = `
+        <div class="top">
+          <div class="ava"><img src="${c.photo}" alt="Foto ${c.name}" loading="lazy"></div>
+          <div style="min-width:0">
+            <div class="name">${c.name}</div>
+            <div class="meta">${c.unit} • ${c.role}</div>
+          </div>
         </div>
-        <div style="min-width:0">
-          <h4>${escapeHtml(e.name)}</h4>
-          <div class="meta">${badges}</div>
-        </div>
-      </div>
-
-      <div class="bar" aria-label="Progress suara">
-        <i style="width:${e.pct.toFixed(1)}%"></i>
-      </div>
-
-      <div class="emp-bottom">
-        <div class="score">${e.votes} vote <span class="mini">(${e.pct.toFixed(1)}%)</span></div>
-        <div class="mini">Klik untuk pilih</div>
-      </div>
-    `;
-
-    card.addEventListener("click", ()=>select(e.id));
-    card.addEventListener("keydown", (ev)=>{
-      if (ev.key === "Enter" || ev.key === " "){
-        ev.preventDefault();
-        select(e.id);
-      }
-      if (ev.key === "i" || ev.key === "I"){
-        openModal(e.id);
-      }
-    });
-
-    grid.appendChild(card);
-    // entry animation
-    gsap.fromTo(card, {y:10, opacity:0}, {y:0, opacity:1, duration:.35, delay: Math.min(idx,6)*0.03, ease:"power2.out"});
-  });
-
-  // stats
-  el("statCandidates").textContent = EMPLOYEES.length.toString();
-  el("statPeriod").textContent = PERIOD_LABEL;
-  el("periodLabel").innerHTML = `Periode: <b>${PERIOD_LABEL}</b> · 1 device 1 vote (demo)`;
-
-  // lock state
-  const lock = getLock();
-  const locked = !!lock;
-  el("statStatus").textContent = locked ? "Locked" : "Unlocked";
-  el("lockState").innerHTML = `Status vote: <b>${locked ? `Sudah memilih (${escapeHtml(lock?.name||"")})` : "Belum memilih"}</b>`;
-
-  // bottom bar
-  const picked = EMPLOYEES.find(x=>x.id===selectedId);
-  el("pickedLabel").textContent = picked ? `${picked.name} — ${picked.unit}` : "Belum ada";
-  el("btnDetails").disabled = !picked;
-  el("btnVote").disabled = !picked || locked;
-
-  // animate progress bars smoothly
-  document.querySelectorAll(".bar > i").forEach((bar)=>{
-    const w = bar.style.width;
-    bar.style.width = "0%";
-    gsap.to(bar, {width:w, duration: .65, ease:"power3.out"});
-  });
-
-  // subtle grid float
-  gsap.to(".emp", {y:"+=1.5", duration:2.4, ease:"sine.inOut", yoyo:true, repeat:-1, stagger: {each: .08, from:"random"}});
-}
-
-function select(id){
-  selectedId = id;
-  render();
-  // haptic-ish micro animation
-  const node = document.querySelector(`.emp[data-id="${id}"]`);
-  if (node){
-    gsap.fromTo(node, {scale:0.99}, {scale:1, duration:.18, ease:"power2.out"});
-  }
-}
-
-function openModal(id){
-  const e = EMPLOYEES.find(x=>x.id===id);
-  if (!e) return;
-  el("mName").textContent = e.name;
-  el("mUnit").textContent = `${e.unit} • ${e.role}`;
-  el("mTitle").textContent = "Ringkasan Kontribusi";
-  el("mBio").textContent = e.bio;
-  el("mImg").src = e.photo;
-  el("mImg").alt = `Foto ${e.name}`;
-
-  const chips = el("mChips");
-  chips.innerHTML = "";
-  e.tags.forEach(t=>{
-    const s = document.createElement("span");
-    s.className = "chip";
-    s.textContent = t;
-    chips.appendChild(s);
-  });
-
-  el("modal").classList.add("show");
-  el("modal").setAttribute("aria-hidden","false");
-  gsap.fromTo(".dialog", {y:14, opacity:0, scale:.98}, {y:0, opacity:1, scale:1, duration:.28, ease:"power2.out"});
-}
-
-function closeModal(){
-  const m = el("modal");
-  gsap.to(".dialog", {y:10, opacity:0, scale:.985, duration:.18, ease:"power2.in", onComplete:()=>{
-    m.classList.remove("show");
-    m.setAttribute("aria-hidden","true");
-  }});
-}
-
-function submitVote(){
-  const lock = getLock();
-  if (lock){
-    toast("Vote terkunci", "Device ini sudah pernah submit vote. Klik Reset jika ingin demo ulang.", false);
-    return;
-  }
-  if (!selectedId){
-    toast("Belum memilih", "Pilih kandidat dulu.", false);
-    return;
-  }
-
-  const counts = ensureCounts();
-  counts[selectedId] = (counts[selectedId] || 0) + 1;
-  setCounts(counts);
-
-  const picked = EMPLOYEES.find(x=>x.id===selectedId);
-  setLock({
-    id: picked.id,
-    name: picked.name,
-    unit: picked.unit,
-    period: PERIOD_LABEL,
-    at: new Date().toISOString()
-  });
-
-  render();
-  boomConfetti();
-  toast("Vote terkirim", `Terima kasih! Kamu memilih ${picked.name}. (Demo: tersimpan di device ini)`);
-}
-
-function showLocalResults(){
-  const counts = ensureCounts();
-  const { total, arr } = computeRank(counts);
-
-  const lines = arr.map((e, i) => {
-    const bar = "█".repeat(Math.round(e.pct/5)).padEnd(20,"░");
-    return `${String(i+1).padStart(2,"0")}. ${e.name} — ${e.votes} vote (${e.pct.toFixed(1)}%)\n    ${bar}`;
-  }).join("\n\n");
-
-  const lock = getLock();
-  const lockTxt = lock ? `\n\nStatus device ini: SUDAH vote (${lock.name}, ${lock.unit})` : `\n\nStatus device ini: BELUM vote`;
-
-  alert(`HASIL (DEMO — device ini)\nPeriode: ${PERIOD_LABEL}\nTotal vote: ${total}\n\n${lines}${lockTxt}\n\nCatatan: untuk hasil terkumpul lintas pengguna, pakai Mode Real (GitHub Issue Form).`);
-}
-
-function resetLocal(){
-  clearLock();
-  localStorage.removeItem(LS_COUNTS);
-  selectedId = null;
-  render();
-  toast("Reset selesai", "Vote & counter demo pada device ini sudah direset.");
-}
-
-function surprisePick(){
-  const lock = getLock();
-  if (lock){
-    toast("Vote terkunci", "Device ini sudah submit vote. Reset untuk coba lagi.", false);
-    return;
-  }
-  const available = EMPLOYEES.map(e=>e.id);
-  const id = available[Math.floor(Math.random()*available.length)];
-  select(id);
-  openModal(id);
-}
-
-/* =========================
-   “Mode Real” via GitHub Issue Form (tanpa server)
-   - Pengguna akan submit vote sebagai Issue di repo (butuh login GitHub)
-   ========================= */
-function showRealModeInfo(){
-  const msg =
-`MODE REAL (tanpa server, cocok untuk GitHub Pages)
-1) Buat file: .github/ISSUE_TEMPLATE/vote.yml di repo kamu.
-2) Isi form vote agar orang submit vote sebagai Issue (butuh login GitHub).
-3) Hasil vote bisa kamu rekap dari Issues (manual atau pakai GitHub Actions).
-
-Aku sudah siapkan template YAML-nya. Klik OK untuk menampilkan template.`;
-  if (confirm(msg)){
-    const yaml = `name: Vote - Employee of Three Month
-description: Submit vote untuk Employee of Three Month
-title: "[VOTE] "
-labels: ["vote"]
-body:
-  - type: markdown
-    attributes:
-      value: |
-        Terima kasih sudah ikut voting. Mohon isi data berikut.
-  - type: input
-    id: period
-    attributes:
-      label: Periode
-      description: Sesuaikan dengan periode voting
-      placeholder: "${PERIOD_LABEL}"
-    validations:
-      required: true
-  - type: dropdown
-    id: candidate
-    attributes:
-      label: Pilihan Kandidat
-      options:
-${EMPLOYEES.map(e=>`        - "${e.name} — ${e.unit}"`).join("\n")}
-    validations:
-      required: true
-  - type: input
-    id: voter
-    attributes:
-      label: Nama Pemilih (opsional)
-      description: Bisa dikosongkan jika ingin anonim
-      placeholder: "Nama kamu"
-    validations:
-      required: false
-  - type: textarea
-    id: reason
-    attributes:
-      label: Alasan memilih (opsional)
-      placeholder: "Contoh: kontribusi, kolaborasi, impact..."
-    validations:
-      required: false
-`;
-    prompt("Salin template ini ke: .github/ISSUE_TEMPLATE/vote.yml", yaml);
-    toast("Template siap", "Template Issue Form ditampilkan. Tempelkan ke repo kamu.");
-  }
-}
-
-/* =========================
-   Confetti (canvas)
-   ========================= */
-const conf = document.getElementById("confetti");
-const cctx = conf.getContext("2d");
-let confetti = [];
-function resizeConfetti(){
-  conf.width = window.innerWidth * devicePixelRatio;
-  conf.height = window.innerHeight * devicePixelRatio;
-  conf.style.width = window.innerWidth + "px";
-  conf.style.height = window.innerHeight + "px";
-  cctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-}
-window.addEventListener("resize", resizeConfetti);
-
-function boomConfetti(){
-  const colors = ["#38bdf8","#34d399","#a78bfa","#fb7185","#fbbf24","#ffffff"];
-  const cx = window.innerWidth/2;
-  const cy = window.innerHeight*0.25;
-
-  for (let i=0;i<180;i++){
-    confetti.push({
-      x: cx + (Math.random()*120-60),
-      y: cy + (Math.random()*40-20),
-      vx: (Math.random()*9-4.5),
-      vy: (Math.random()*-10-5),
-      g: 0.32 + Math.random()*0.08,
-      s: 3 + Math.random()*5,
-      r: Math.random()*Math.PI,
-      vr: (Math.random()*0.25-0.125),
-      c: colors[Math.floor(Math.random()*colors.length)],
-      life: 120 + Math.random()*40
+        <div class="pill">Klik untuk detail & vote</div>
+      `;
+      d.addEventListener("click", ()=>openDetail(c.id));
+      g.appendChild(d);
     });
   }
 
-  if (!boomConfetti._anim){
-    boomConfetti._anim = true;
-    requestAnimationFrame(stepConfetti);
+  function openDetail(id){
+    selected = CANDIDATES.find(x=>x.id===id);
+    if(!selected) return;
+
+    el("pImg").src = selected.photo;
+    el("pName").textContent = selected.name;
+    el("pMeta").textContent = `${selected.unit} • ${selected.role}`;
+    el("pBio").textContent = selected.bio;
+
+    const chips = el("pChips");
+    chips.innerHTML = "";
+    selected.tags.forEach(t=>{
+      const s = document.createElement("span");
+      s.className = "chip";
+      s.textContent = t;
+      chips.appendChild(s);
+    });
+
+    el("toast").textContent = "";
+    el("panel").style.display = "grid";
+    window.scrollTo({top: document.body.scrollHeight, behavior:"smooth"});
   }
-}
-function stepConfetti(){
-  cctx.clearRect(0,0,conf.width,conf.height);
-  confetti = confetti.filter(p=>p.life>0);
-  for (const p of confetti){
-    p.life -= 1;
-    p.vy += p.g;
-    p.x += p.vx;
-    p.y += p.vy;
-    p.r += p.vr;
 
-    cctx.save();
-    cctx.translate(p.x, p.y);
-    cctx.rotate(p.r);
-    cctx.fillStyle = p.c;
-    cctx.globalAlpha = clamp(p.life/160, 0, 1);
-    cctx.fillRect(-p.s/2, -p.s/2, p.s*1.4, p.s);
-    cctx.restore();
+  el("btnClose").addEventListener("click", ()=>{
+    el("panel").style.display = "none";
+    selected = null;
+  });
+
+  // ====== AUTH (Netlify Identity email login) ======
+  function user(){
+    return window.netlifyIdentity?.currentUser?.();
   }
-  if (confetti.length){
-    requestAnimationFrame(stepConfetti);
-  } else {
-    boomConfetti._anim = false;
+
+  function refreshAuthUI(){
+    const u = user();
+    el("btnLogin").style.display = u ? "none" : "inline-flex";
+    el("btnLogout").style.display = u ? "inline-flex" : "none";
+    el("authState").textContent = u
+      ? `Status: login sebagai ${u.email}`
+      : "Status: belum login";
   }
-}
 
-/* =========================
-   Animated Particles Background (canvas)
-   ========================= */
-const fx = document.getElementById("fx");
-const fctx = fx.getContext("2d");
-let W=0,H=0, P=[];
-function resizeFx(){
-  W = fx.width = Math.floor(window.innerWidth * devicePixelRatio);
-  H = fx.height = Math.floor(window.innerHeight * devicePixelRatio);
-  fx.style.width = window.innerWidth + "px";
-  fx.style.height = window.innerHeight + "px";
-  fctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  el("btnLogin").addEventListener("click", ()=>{
+    window.netlifyIdentity.open();
+  });
+  el("btnLogout").addEventListener("click", ()=>{
+    window.netlifyIdentity.logout();
+  });
 
-  const n = Math.round((window.innerWidth*window.innerHeight)/25000);
-  P = Array.from({length: clamp(n, 42, 120)}, ()=>({
-    x: Math.random()*window.innerWidth,
-    y: Math.random()*window.innerHeight,
-    vx: (Math.random()*0.7-0.35),
-    vy: (Math.random()*0.7-0.35),
-    r: 1.2 + Math.random()*2.4,
-    a: 0.08 + Math.random()*0.16
-  }));
-}
-window.addEventListener("resize", resizeFx);
-
-let mouse = {x:-999,y:-999};
-window.addEventListener("mousemove", (e)=>{ mouse.x=e.clientX; mouse.y=e.clientY; });
-
-function fxLoop(){
-  fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
-
-  // vignette glow
-  const g = fctx.createRadialGradient(mouse.x, mouse.y, 40, mouse.x, mouse.y, 320);
-  g.addColorStop(0, "rgba(56,189,248,.12)");
-  g.addColorStop(1, "rgba(0,0,0,0)");
-  fctx.fillStyle = g;
-  fctx.fillRect(0,0,window.innerWidth,window.innerHeight);
-
-  // particles + links
-  for (let i=0;i<P.length;i++){
-    const p = P[i];
-    p.x += p.vx;
-    p.y += p.vy;
-
-    if (p.x< -20) p.x = window.innerWidth+20;
-    if (p.x> window.innerWidth+20) p.x = -20;
-    if (p.y< -20) p.y = window.innerHeight+20;
-    if (p.y> window.innerHeight+20) p.y = -20;
-
-    // draw dot
-    fctx.beginPath();
-    fctx.fillStyle = `rgba(255,255,255,${p.a})`;
-    fctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-    fctx.fill();
-
-    // link nearby
-    for (let j=i+1;j<P.length;j++){
-      const q = P[j];
-      const dx = p.x-q.x, dy = p.y-q.y;
-      const d2 = dx*dx + dy*dy;
-      if (d2 < 140*140){
-        const a = (1 - Math.sqrt(d2)/140) * 0.14;
-        fctx.strokeStyle = `rgba(56,189,248,${a})`;
-        fctx.lineWidth = 1;
-        fctx.beginPath();
-        fctx.moveTo(p.x,p.y);
-        fctx.lineTo(q.x,q.y);
-        fctx.stroke();
-      }
+  // ====== VOTE submit (ke Netlify Function) ======
+  el("btnVote").addEventListener("click", async ()=>{
+    const u = user();
+    if(!u){
+      el("toast").textContent = "Silakan login dulu (email) untuk vote.";
+      window.netlifyIdentity.open();
+      return;
     }
-  }
-  requestAnimationFrame(fxLoop);
-}
+    if(!selected){
+      el("toast").textContent = "Pilih kandidat dulu.";
+      return;
+    }
 
-/* =========================
-   Helpers
-   ========================= */
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, (m)=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[m]));
-}
+    try{
+      const token = await u.jwt();
+      const res = await fetch("/.netlify/functions/vote", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          period: PERIOD,
+          candidateId: selected.id
+        })
+      });
+      const data = await res.json();
+      if(!res.ok){
+        el("toast").textContent = data?.error || "Gagal vote.";
+        return;
+      }
+      el("toast").textContent = `✅ Vote diterima. Kamu memilih: ${selected.name}.`;
+    }catch(err){
+      el("toast").textContent = "Error jaringan / server.";
+    }
+  });
 
-/* =========================
-   Bindings
-   ========================= */
-el("q").addEventListener("input", ()=>render());
-el("sort").addEventListener("change", ()=>render());
+  el("btnAdmin").addEventListener("click", ()=> location.href="/admin.html");
 
-el("btnVote").addEventListener("click", submitVote);
-el("btnDetails").addEventListener("click", ()=> openModal(selectedId));
-el("btnAutoPick").addEventListener("click", surprisePick);
-el("btnOpenResults").addEventListener("click", showLocalResults);
+  // init
+  renderGrid();
+  window.netlifyIdentity && window.netlifyIdentity.on("init", refreshAuthUI);
+  window.netlifyIdentity && window.netlifyIdentity.on("login", ()=>{ refreshAuthUI(); window.netlifyIdentity.close(); });
+  window.netlifyIdentity && window.netlifyIdentity.on("logout", refreshAuthUI);
 
-el("resetLocal").addEventListener("click", ()=>{
-  if (confirm("Reset vote demo pada device ini? (Tidak mempengaruhi device lain)")) resetLocal();
-});
-el("howReal").addEventListener("click", showRealModeInfo);
-
-el("modalClose").addEventListener("click", closeModal);
-el("mX").addEventListener("click", closeModal);
-
-el("mPick").addEventListener("click", ()=>{
-  if (!selectedId) selectedId = EMPLOYEES[0].id;
-  closeModal();
-  select(selectedId);
-  toast("Dipilih", "Kandidat ditetapkan sebagai pilihan aktif. Klik Submit Vote untuk mengirim.");
-});
-el("mVote").addEventListener("click", ()=>{
-  closeModal();
-  submitVote();
-});
-
-document.addEventListener("keydown", (e)=>{
-  if (e.key === "Escape") closeModal();
-});
-
-// Init
-(function init(){
-  el("statPeriod").textContent = PERIOD_LABEL;
-  resizeFx();
-  resizeConfetti();
-  fxLoop();
-
-  // initial selection if any locked
-  const lock = getLock();
-  if (lock?.id) selectedId = lock.id;
-
-  // fancy entry animation
-  gsap.fromTo("header", {y:-10, opacity:0}, {y:0, opacity:1, duration:.35, ease:"power2.out"});
-  gsap.fromTo(".hero .card", {y:12, opacity:0}, {y:0, opacity:1, duration:.45, ease:"power2.out", stagger:.08});
-
-  render();
-
-  // Mode pill text
-  el("modeText").textContent = "Demo (Local)";
-})();
+  // In case widget loads after
+  setTimeout(refreshAuthUI, 800);
 </script>
 </body>
 </html>
