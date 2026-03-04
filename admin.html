@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin — Employee Vote</title>
+  <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
+    .card{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);border-radius:16px;padding:14px;margin-top:12px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid rgba(255,255,255,.10);padding:10px;text-align:left;font-size:13px}
+    .btn{border:none;cursor:pointer;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14);font-weight:700}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .muted{color:rgba(255,255,255,.7);font-size:13px}
+    a{color:#38bdf8;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <b>Admin — Rekap Vote</b>
+        <div class="muted" id="state">—</div>
+      </div>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn" id="btnHome">Home</button>
+        <button class="btn" id="btnLogin">Login</button>
+        <button class="btn" id="btnLogout" style="display:none">Logout</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <b>Ringkasan</b>
+      <div class="muted" id="summary">—</div>
+      <div id="totals"></div>
+    </div>
+
+    <div class="card">
+      <b>Log Vote (raw)</b>
+      <div class="muted">Menampilkan seluruh vote yang tercatat.</div>
+      <div style="overflow:auto">
+        <table id="tbl">
+          <thead><tr><th>Waktu</th><th>Email</th><th>Periode</th><th>CandidateId</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const el = (id)=>document.getElementById(id);
+  const user = ()=> window.netlifyIdentity?.currentUser?.();
+
+  function refreshAuthUI(){
+    const u = user();
+    el("btnLogin").style.display = u ? "none" : "inline-flex";
+    el("btnLogout").style.display = u ? "inline-flex" : "none";
+    el("state").textContent = u ? `Login sebagai ${u.email}` : "Belum login";
+    if (u) loadResults();
+  }
+
+  el("btnHome").onclick = ()=> location.href="/";
+  el("btnLogin").onclick = ()=> window.netlifyIdentity.open();
+  el("btnLogout").onclick = ()=> window.netlifyIdentity.logout();
+
+  async function loadResults(){
+    const u = user();
+    if(!u) return;
+    const token = await u.jwt();
+
+    const res = await fetch("/.netlify/functions/results", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if(!res.ok){
+      el("summary").textContent = data?.error || "Gagal ambil hasil (mungkin bukan admin).";
+      return;
+    }
+
+    el("summary").textContent = `Total vote: ${data.totalVotes} • Total voter unik: ${data.uniqueVoters}`;
+
+    // totals per candidate
+    const t = document.createElement("div");
+    t.innerHTML = "<ul>" + Object.entries(data.totals).map(([k,v])=>`<li><b>${k}</b>: ${v}</li>`).join("") + "</ul>";
+    const totals = el("totals");
+    totals.innerHTML = "";
+    totals.appendChild(t);
+
+    // raw logs
+    const tbody = document.querySelector("#tbl tbody");
+    tbody.innerHTML = "";
+    data.votes.forEach(v=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${new Date(v.at).toLocaleString()}</td><td>${v.email}</td><td>${v.period}</td><td>${v.candidateId}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.netlifyIdentity && window.netlifyIdentity.on("init", refreshAuthUI);
+  window.netlifyIdentity && window.netlifyIdentity.on("login", ()=>{ refreshAuthUI(); window.netlifyIdentity.close(); });
+  window.netlifyIdentity && window.netlifyIdentity.on("logout", refreshAuthUI);
+  setTimeout(refreshAuthUI, 800);
+</script>
+</body>
+</html>
